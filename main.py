@@ -1,5 +1,5 @@
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from fastapi_sqlalchemy import DBSessionMiddleware, db
 
 from schema import Book as SchemaBook
@@ -10,6 +10,7 @@ from schema import Author
 
 from models import Book as ModelBook
 from models import Author as ModelAuthor
+from auth import JWTBearer
 
 import os
 from dotenv import load_dotenv
@@ -27,7 +28,7 @@ async def root():
     return {"message": "hello world"}
 
 
-@app.post('/book/', response_model=SchemaBook)
+@app.post('/book/',dependencies=[Depends(JWTBearer())], response_model=SchemaBook)
 async def book(book: SchemaBook):
     db_book = ModelBook(title=book.title, rating=book.rating, author_id = book.author_id)
     db.session.add(db_book)
@@ -41,7 +42,7 @@ async def book():
 
 
   
-@app.post('/author/', response_model=SchemaAuthor)
+@app.post('/author/', dependencies=[Depends(JWTBearer())], response_model=SchemaAuthor)
 async def author(author:SchemaAuthor):
     db_author = ModelAuthor(name=author.name, age=author.age)
     db.session.add(db_author)
